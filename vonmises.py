@@ -77,9 +77,9 @@ stance_start_mean = -0.5 * 2 * np.pi
 stance_end_mean = 0 * 2 * np.pi
 
 next_stance_start_mean = 0.5 * 2 * np.pi
-next_stance_end_mean = 1.5 * 2 * np.pi
+next_stance_end_mean = 1 * 2 * np.pi
 
-last_swing_start_mean = -1.5 * 2 * np.pi
+last_swing_start_mean = -1 * 2 * np.pi
 last_swing_end_mean = -0.5 * 2 * np.pi
 
 swing_start_mean = 0 * 2 * np.pi
@@ -135,7 +135,7 @@ def expectation_swing(phi):
 fig, ax = plt.subplots(1, 1)
 phi_list = np.linspace(-np.pi, np.pi, 100)
 ax.plot(phi_list, [-expectation_swing(phi) for phi in phi_list], label = 'E(I_swing_GRF)')
-# ax.plot(phi_list, [-expectation_stance(phi) for phi in phi_list], label = 'E(I_stance_GRF)')
+ax.plot(phi_list, [-expectation_stance(phi) for phi in phi_list], label = 'E(I_stance_GRF)')
 # ax.plot(phi_list, [expectation(phi) for phi in phi_list], label = 'E')
 
 # ax.plot(phi_list, [P_I_stance(phi, 0) for phi in phi_list], label = 'P of I_stance=0')

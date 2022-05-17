@@ -30,8 +30,10 @@ class MyReplayBuffer(ReplayBuffer):
             counter_interval = 100000):
         super().__init__(buffer_size, observation_space, action_space, device, n_envs, optimize_memory_usage, handle_timeout_termination)
 
-        self.recent_sample_indices = []
-        self.not_recent_sample_indices = []
+        # self.recent_sample_indices = []
+        # self.not_recent_sample_indices = []
+        
+        self.history_buffer_num = 0
         self.counter_interval = counter_interval
         self.recent_sample_ratio = 0.5
 
@@ -46,40 +48,48 @@ class MyReplayBuffer(ReplayBuffer):
         infos: List[Dict[str, Any]],
     ) -> None:
 
-        if len(self.recent_sample_indices) >= self.counter_interval:
-            tmp = self.recent_sample_indices.pop(0)
-            self.not_recent_sample_indices.append(tmp)
-        if len(self.not_recent_sample_indices) >= self.buffer_size - self.counter_interval:
-            self.not_recent_sample_indices.pop(0)
-        self.recent_sample_indices.append(self.pos)
+        # if len(self.recent_sample_indices) >= self.counter_interval:
+        #    tmp = self.recent_sample_indices.pop(0)
+        #    self.not_recent_sample_indices.append(tmp)
+        # if len(self.not_recent_sample_indices) >= self.buffer_size - self.counter_interval:
+        #    self.not_recent_sample_indices.pop(0)
+        # self.recent_sample_indices.append(self.pos)
 
         # if self.recent_sample_ratio < 0.5:
         #    self.recent_sample_ratio += (0.5 - 0.0) / 2000000
-
+        
+        self.history_buffer_num += 1
         super().add(obs, next_obs, action, reward, done, infos)
 
     
     def sample(self, batch_size: int, env: Optional[VecNormalize] = None) -> ReplayBufferSamples:
-        if not self.optimize_memory_usage:
-            # return super().sample(batch_size=batch_size, env=env)
+        # if not self.optimize_memory_usage:
+        #     # return super().sample(batch_size=batch_size, env=env)
             
-            if len(self.recent_sample_indices) < self.counter_interval:
-                return super().sample(batch_size = batch_size, env = env)
-            else:
-                recent_bs = int(batch_size * self.recent_sample_ratio)
-                non_recent_bs = batch_size - recent_bs
-                recent_inds = random.choices(self.recent_sample_indices, k = recent_bs)
+        #     recent_bs = int(batch_size * self.recent_sample_ratio)
+        #     non_recent_bs = batch_size - recent_bs
+            
+        #     if len(self.recent_sample_indices) < self.counter_interval:
+        #         return super().sample(batch_size = batch_size, env = env)
+        #     else:
+        #         recent_inds = random.choices(self.recent_sample_indices, k = recent_bs)
                     
-                # upper_bound = self.buffer_size if self.full else self.pos
-                not_recent_inds = random.choices(self.not_recent_sample_indices, k = non_recent_bs)
+        #         # upper_bound = self.buffer_size if self.full else self.pos
+        #         not_recent_inds = random.choices(self.not_recent_sample_indices, k = non_recent_bs)
                 
-                batch_inds = np.append(recent_inds, not_recent_inds)
-                return self._get_samples(batch_inds, env=env)
+        #         batch_inds = np.append(recent_inds, not_recent_inds)
+        #         return self._get_samples(batch_inds, env=env)
 
 
-        if self.full:
-            batch_inds = (np.random.randint(1, self.buffer_size, size=batch_size) + self.pos) % self.buffer_size
+        # if self.full:
+        #     batch_inds = (np.random.randint(1, self.buffer_size, size=batch_size) + self.pos) % self.buffer_size
+        # else:
+        #     batch_inds = np.random.randint(0, self.pos, size=batch_size)
+
+        if self.history_buffer_num >= self.counter_interval:
+            batch_inds = np.random.randint(self.pos - self.counter_interval, self.pos, size = batch_size)
         else:
-            batch_inds = np.random.randint(0, self.pos, size=batch_size)
+            batch_inds = np.random.randint(0, self.pos, size = batch_size)
+
 
         return self._get_samples(batch_inds, env=env)
